@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import butterknife.Bind;
@@ -53,8 +54,32 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 		});
 		mButton.setOnClickListener(new View.OnClickListener() {
 			@Override public void onClick(View v) {
-				swipeRefresh(true);
-				loadData();
+				//swipeRefresh(true);
+				//loadData();
+				//new Thread(new Runnable() {
+				//	@Override public void run() {
+				//		HttpHelper.execute("http://news-at.zhihu.com/api/4/start-image/1080*1776",
+				//			new HttpHelper.CallBack() {
+				//				@Override public void onResponse(String response) {
+				//					Log.d("http response", response);
+				//				}
+				//
+				//				@Override public void onError(String errorMessage) {
+				//					Log.d("http response", errorMessage);
+				//				}
+				//			});
+				//	}
+				//}).start();
+
+				OkHttpHelper.get("http://news-at.zhihu.com/api/4/start-image/1080*1776", new OkHttpHelper.CallBack() {
+					@Override public void onResponse(String response) {
+						Log.d("http response", response);
+					}
+
+					@Override public void onError(String errorMessage) {
+						Log.d("http response", errorMessage);
+					}
+				});
 			}
 		});
 		mRefreshLayout.setOnRefreshListener(this);
