@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import butterknife.Bind;
@@ -22,6 +21,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
 	private ButterAdapter mButterAdapter;
 	private List<ButterItem> mButterItemList;
+
+	private String url = "xxx";
+	private String moreDataUrl = "xxx";
 
 	@Override protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -46,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 				if (newState == RecyclerView.SCROLL_STATE_IDLE) {
 					if (linearLayoutManager.findLastCompletelyVisibleItemPosition()
 						== linearLayoutManager.getItemCount() - 1) {
-						swipeRefresh(true);
 						loadMoreData();
 					}
 				}
@@ -54,32 +55,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 		});
 		mButton.setOnClickListener(new View.OnClickListener() {
 			@Override public void onClick(View v) {
-				//swipeRefresh(true);
-				//loadData();
-				//new Thread(new Runnable() {
-				//	@Override public void run() {
-				//		HttpHelper.execute("http://news-at.zhihu.com/api/4/start-image/1080*1776",
-				//			new HttpHelper.CallBack() {
-				//				@Override public void onResponse(String response) {
-				//					Log.d("http response", response);
-				//				}
-				//
-				//				@Override public void onError(String errorMessage) {
-				//					Log.d("http response", errorMessage);
-				//				}
-				//			});
-				//	}
-				//}).start();
-
-				OkHttpHelper.get("http://news-at.zhihu.com/api/4/start-image/1080*1776", new OkHttpHelper.CallBack() {
-					@Override public void onResponse(String response) {
-						Log.d("http response", response);
-					}
-
-					@Override public void onError(String errorMessage) {
-						Log.d("http response", errorMessage);
-					}
-				});
+				mButton.setVisibility(View.GONE);
+				loadData();
 			}
 		});
 		mRefreshLayout.setOnRefreshListener(this);
@@ -89,26 +66,77 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 		loadData();
 	}
 
+	/**
+	 * 第一次加载或者刷新数据
+	 */
 	private void loadData() {
-		mButterItemList.clear();
-		mButton.setVisibility(View.GONE);
-		for (int i = 0; i < 10; i++) {
-			ButterItem item = new ButterItem();
-			item.setUserName(i + "");
-			mButterItemList.add(item);
+		if (!mRefreshLayout.isRefreshing()) {
+			swipeRefresh(true);
 		}
-		mButterAdapter.notifyDataSetChanged();
-		swipeRefresh(false);
+		mButterItemList.clear();
+		new Thread(new Runnable() {
+			@Override public void run() {
+				HttpHelper.execute(url, new HttpHelper.CallBack() {
+					@Override public void onResponse(String response) {
+						mButterItemList.addAll(convertStringToList(response));
+						mButterAdapter.notifyDataSetChanged();
+						swipeRefresh(false);
+					}
+
+					@Override public void onError(String errorMessage) {
+						swipeRefresh(false);
+					}
+				});
+			}
+		}).start();
+
+		OkHttpHelper.get(url, new OkHttpHelper.CallBack() {
+			@Override public void onResponse(String response) {
+				mButterItemList.addAll(convertStringToList(response));
+				mButterAdapter.notifyDataSetChanged();
+				swipeRefresh(false);
+			}
+
+			@Override public void onError(String errorMessage) {
+				swipeRefresh(false);
+			}
+		});
 	}
 
+	/**
+	 * 加载更多数据
+	 */
 	private void loadMoreData() {
-		for (int i = 0; i < 10; i++) {
-			ButterItem item = new ButterItem();
-			item.setUserName(i + "");
-			mButterItemList.add(item);
+		if (!mRefreshLayout.isRefreshing()) {
+			swipeRefresh(true);
 		}
-		mButterAdapter.notifyDataSetChanged();
-		swipeRefresh(false);
+		new Thread(new Runnable() {
+			@Override public void run() {
+				HttpHelper.execute(moreDataUrl, new HttpHelper.CallBack() {
+					@Override public void onResponse(String response) {
+						mButterItemList.addAll(convertStringToList(response));
+						mButterAdapter.notifyDataSetChanged();
+						swipeRefresh(false);
+					}
+
+					@Override public void onError(String errorMessage) {
+						swipeRefresh(false);
+					}
+				});
+			}
+		}).start();
+
+		OkHttpHelper.get(moreDataUrl, new OkHttpHelper.CallBack() {
+			@Override public void onResponse(String response) {
+				mButterItemList.addAll(convertStringToList(response));
+				mButterAdapter.notifyDataSetChanged();
+				swipeRefresh(false);
+			}
+
+			@Override public void onError(String errorMessage) {
+				swipeRefresh(false);
+			}
+		});
 	}
 
 	private void swipeRefresh(final boolean refresh) {
@@ -121,5 +149,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 				}
 			}
 		});
+	}
+
+	private List<ButterItem> convertStringToList(String response) {
+		//将请求返回的数据转换成列表项List
+		//没有找到区分照片宽高比例的字段,只能写了一个模拟的方法
+		return null;
 	}
 }

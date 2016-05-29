@@ -9,6 +9,10 @@ public class ButterItem {
 	private int imageType;
 	private String userName;
 
+	public static final int TYPE_ONE_ONE = 0;//宽高比例1:1的图片类型
+	public static final int TYPE_FOUR_THREE = 1;//宽高比例4:3的图片类型
+	public static final int TYPE_SIXTEEN_NINE = 2;//宽高比例16:9的图片类型
+
 	public String getUserName() {
 		return userName;
 	}
