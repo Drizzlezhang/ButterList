@@ -1,6 +1,7 @@
 package com.drizzle.butterlist;
 
 import android.os.Bundle;
+import android.os.Message;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -66,6 +67,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 		loadData();
 	}
 
+	private android.os.Handler mHandler = new android.os.Handler() {
+		@Override public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case 1:
+					mButterAdapter.notifyDataSetChanged();
+					break;
+			}
+		}
+	};
+
 	/**
 	 * 第一次加载或者刷新数据
 	 */
@@ -79,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 				HttpHelper.execute(url, new HttpHelper.CallBack() {
 					@Override public void onResponse(String response) {
 						mButterItemList.addAll(convertStringToList(response));
-						mButterAdapter.notifyDataSetChanged();
+						mHandler.sendEmptyMessage(1);
 						swipeRefresh(false);
 					}
 
@@ -115,7 +126,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 				HttpHelper.execute(moreDataUrl, new HttpHelper.CallBack() {
 					@Override public void onResponse(String response) {
 						mButterItemList.addAll(convertStringToList(response));
-						mButterAdapter.notifyDataSetChanged();
+						mHandler.sendEmptyMessage(1);
+
 						swipeRefresh(false);
 					}
 
